@@ -17,5 +17,9 @@ log/logs/*
 get token/fetch_token/token.txt
 get token/fetch_token/capture.log
 
+# Build output
+/dist/
+/build/
+
 # macOS
 .DS_Store

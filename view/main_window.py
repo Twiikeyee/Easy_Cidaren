@@ -248,7 +248,10 @@ class UiMainWindow(QMainWindow):
         self.menu_get_token.addAction(self.action_third_party)
         self.action_builtin.triggered.connect(self.open_builtin_token_dialog)
         self.action_third_party.triggered.connect(self.get_token)
-        self.menu_get_token.triggered[QAction].connect(self.open_helper)
+        # 注意：不要把 menu_get_token / menu_2 的 triggered 再连到 open_helper 处理「内置」「第三方」。
+        # macOS 原生菜单栏下子项不向父菜单冒泡，而 Windows 下会冒泡——两种行为叠加会让同一次点击
+        # 打开多个 Token 对话框（每个都会起 mitmdump、抢 8888 端口、改系统代理）。
+        # 这两个菜单项只由上面两条 action 的直接连接负责，跨平台行为一致。
         self.action_open_logs.setText("导出日志文件")
         self.menu_2.addAction(self.action_open_logs)
         self.menu_2.triggered[QAction].connect((self.open_helper))
@@ -695,10 +698,8 @@ class UiMainWindow(QMainWindow):
                 info_text = f"EasyCidaren\n版本: {self.public_info.version}\n作者: ularch\n开源地址: https://github.com/ularch/Easy_Cidaren\n唯一设备ID: {uid}"
                 clipboard.setText(info_text)
                 QMessageBox.information(self, "复制成功", "已将相关信息复制到剪贴板")
-        elif m.text() == "第三方":
-            self.get_token()
-        elif m.text() == "内置":
-            self.open_builtin_token_dialog()
+        # 「内置」「第三方」不在此处理：它们只由 action_builtin / action_third_party 的
+        # 直接 triggered 连接负责（见 setupUi），此处若再处理会在菜单信号冒泡时重复弹窗
         elif m.text() == "导出日志文件":
             from log.log import export_logs
             export_logs(self)
